@@ -31,97 +31,137 @@ namespace Test.Repository
                     employee.Gender = rdr["Gender"] == DBNull.Value ? null : rdr["Gender"].ToString();
                     employee.City = rdr["City"] == DBNull.Value ? null : rdr["City"].ToString();
                     employee.Salary = Convert.ToDecimal(rdr["Salary"]);
-                    employee.DateOfBirth = Convert.ToDateTime(rdr["DateOfBirth"]);
+                    employee.DOB = rdr["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(rdr["DateOfBirth"]) : DateTime.MinValue;
                     employee.Email = rdr["Email"].ToString(); ;
                     employee.Mobile = rdr["Mobile"].ToString();
                     employee.Role = rdr["Role"].ToString(); ;
-                    employee.Img = rdr["Img"].ToString(); ;
+                    employee.ImgName = rdr["Img"].ToString(); ;
                     employees.Add(employee);
                 }
             }
             return employees;
         }
 
-        public void AddEmmployee(Employee emp)
+        public bool AddEmmployee(Employee emp)
         {
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            bool res = false;
+            try
             {
-                string qry = "Insert into  Employee(UserName,Pwd,Name, Gender, City, Salary, DateOfBirth,Email,Mobile,Role,Img) ";
-                qry += " Values(@UserName,@Pwd,@Name, @Gender, @City, @Salary, @DateOfBirth, @Email, @Mobile, @Role, @Img)";
-                SqlCommand cmd = new SqlCommand(qry, con);
-                cmd.Parameters.Add(new SqlParameter("Name", emp.Name));
-                cmd.Parameters.Add(new SqlParameter("Gender", emp.Gender));
-                cmd.Parameters.Add(new SqlParameter("City", emp.City));
-                cmd.Parameters.Add(new SqlParameter("Salary", emp.Salary));
-                cmd.Parameters.Add(new SqlParameter("DateOfBirth", emp.DateOfBirth));
-                cmd.Parameters.Add(new SqlParameter("Email", emp.Email));
-                cmd.Parameters.Add(new SqlParameter("Mobile", emp.Mobile));
-                cmd.Parameters.Add(new SqlParameter("UserName", emp.UserName));
-                cmd.Parameters.Add(new SqlParameter("Pwd", emp.Pwd));
-                cmd.Parameters.Add(new SqlParameter("Role", emp.Role));
-                cmd.Parameters.Add(new SqlParameter("Img", emp.Img));
-                //Open the connection and execute the command on ExecuteNonQuery method
-                con.Open();
-                cmd.ExecuteNonQuery();
-
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    string qry = "Insert into  Employee(UserName,Pwd,Name, Gender, City, Salary, DateOfBirth,Email,Mobile,Role,Img) ";
+                    qry += " Values(@UserName,@Pwd,@Name, @Gender, @City, @Salary, @DateOfBirth, @Email, @Mobile, @Role, @Img)";
+                    SqlCommand cmd = new SqlCommand(qry, con);
+                    cmd.Parameters.Add(new SqlParameter("Name", emp.Name));
+                    cmd.Parameters.Add(new SqlParameter("Gender", emp.Gender));
+                    cmd.Parameters.Add(new SqlParameter("City", emp.City));
+                    cmd.Parameters.Add(new SqlParameter("Salary", emp.Salary));
+                    cmd.Parameters.Add(new SqlParameter("DateOfBirth", emp.DOB));
+                    cmd.Parameters.Add(new SqlParameter("Email", emp.Email));
+                    cmd.Parameters.Add(new SqlParameter("Mobile", emp.Mobile));
+                    cmd.Parameters.Add(new SqlParameter("UserName", emp.UserName));
+                    cmd.Parameters.Add(new SqlParameter("Pwd", emp.Pwd));
+                    cmd.Parameters.Add(new SqlParameter("Role", emp.Role));
+                    cmd.Parameters.Add(new SqlParameter("Img", emp.ImgName));
+                    //Open the connection and execute the command on ExecuteNonQuery method
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                    res = true;
+                }
 
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return res;
+
+            }
+
+            return res;
+
+
         }
 
-        public void UpdateEmmployee(Employee employee)
+        public bool UpdateEmmployee(Employee employee)
         {
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            bool res = false;
+            try
             {
-                SqlCommand cmd = new SqlCommand("spUpdateEmployee", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                SqlParameter paramId = new SqlParameter();
-                paramId.ParameterName = "@Id";
-                paramId.Value = employee.ID;
-                cmd.Parameters.Add(paramId);
-                SqlParameter paramName = new SqlParameter();
-                paramName.ParameterName = "@Name";
-                paramName.Value = employee.Name;
-                cmd.Parameters.Add(paramName);
-                SqlParameter paramGender = new SqlParameter();
-                paramGender.ParameterName = "@Gender";
-                paramGender.Value = employee.Gender;
-                cmd.Parameters.Add(paramGender);
-                SqlParameter paramCity = new SqlParameter();
-                paramCity.ParameterName = "@City";
-                paramCity.Value = employee.City;
-                cmd.Parameters.Add(paramCity);
-                SqlParameter paramSalary = new SqlParameter();
-                paramSalary.ParameterName = "@Salary";
-                paramSalary.Value = employee.Salary;
-                cmd.Parameters.Add(paramSalary);
-                SqlParameter paramDateOfBirth = new SqlParameter();
-                paramDateOfBirth.ParameterName = "@DateOfBirth";
-                paramDateOfBirth.Value = employee.DateOfBirth;
-                cmd.Parameters.Add(paramDateOfBirth);
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    SqlCommand cmd = new SqlCommand("spUpdateEmployee", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    SqlParameter paramId = new SqlParameter();
+                    paramId.ParameterName = "@Id";
+                    paramId.Value = employee.ID;
+                    cmd.Parameters.Add(paramId);
+                    SqlParameter paramName = new SqlParameter();
+                    paramName.ParameterName = "@Name";
+                    paramName.Value = employee.Name;
+                    cmd.Parameters.Add(paramName);
+                    SqlParameter paramGender = new SqlParameter();
+                    paramGender.ParameterName = "@Gender";
+                    paramGender.Value = employee.Gender;
+                    cmd.Parameters.Add(paramGender);
+                    SqlParameter paramCity = new SqlParameter();
+                    paramCity.ParameterName = "@City";
+                    paramCity.Value = employee.City;
+                    cmd.Parameters.Add(paramCity);
+                    SqlParameter paramSalary = new SqlParameter();
+                    paramSalary.ParameterName = "@Salary";
+                    paramSalary.Value = employee.Salary;
+                    cmd.Parameters.Add(paramSalary);
+                    SqlParameter paramDateOfBirth = new SqlParameter();
+                    paramDateOfBirth.ParameterName = "@DateOfBirth";
+                    paramDateOfBirth.Value = employee.DOB;
+                    cmd.Parameters.Add(paramDateOfBirth);
 
-                SqlParameter paramRole = new SqlParameter();
-                paramRole.ParameterName = "@Role";
-                paramRole.Value = employee.Role;
-                cmd.Parameters.Add(paramRole);
+                    SqlParameter paramRole = new SqlParameter();
+                    paramRole.ParameterName = "@Role";
+                    paramRole.Value = employee.Role;
+                    cmd.Parameters.Add(paramRole);
 
-                SqlParameter paramImg = new SqlParameter();
-                paramImg.ParameterName = "@Img";
-                paramImg.Value = employee.Img;
-                cmd.Parameters.Add(paramImg);
-                con.Open();
-                cmd.ExecuteNonQuery();
+                    SqlParameter paramImg = new SqlParameter();
+                    paramImg.ParameterName = "@Img";
+                    paramImg.Value = employee.ImgName;
+                    cmd.Parameters.Add(paramImg);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                    res = true;
+                }
+
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return res;
+
+            }
+
+            return res;
         }
 
-        public void DeleteEmployee(int id)
+        public bool DeleteEmployee(int id)
         {
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            bool res = false;
+            try
             {
-                SqlCommand cmd = new SqlCommand("Delete from Employee where Id = @Id", con);
-                cmd.Parameters.Add(new SqlParameter("Id", id));
-                con.Open();
-                cmd.ExecuteNonQuery();
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    SqlCommand cmd = new SqlCommand("Delete from Employee where Id = @Id", con);
+                    cmd.Parameters.Add(new SqlParameter("Id", id));
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                    res = true;
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return res;
+
+            }
+            return res;
         }
 
         public bool Login(Employee emp)
@@ -137,9 +177,6 @@ namespace Test.Repository
                 if (count > 0)
                     IsAuth = true;
                 con.Close();
-
-
-
             }
             return IsAuth;
         }
@@ -149,9 +186,9 @@ namespace Test.Repository
     public interface IEmployeeRepository
     {
         IEnumerable<Employee> GetAllEmployess();
-        void AddEmmployee(Employee employeeToCreate);
-        void UpdateEmmployee(Employee employeeToUpdate);
-        void DeleteEmployee(int id);
+        bool AddEmmployee(Employee employeeToCreate);
+        bool UpdateEmmployee(Employee employeeToUpdate);
+        bool DeleteEmployee(int id);
         bool Login(Employee emp);
 
 

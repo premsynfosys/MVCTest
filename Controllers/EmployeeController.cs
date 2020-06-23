@@ -1,11 +1,9 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Web;
 using System.Web.Mvc;
@@ -20,15 +18,21 @@ namespace Test.Controllers
     {
         // GET: Employee
 
-        private IEmployeeRepository _repository;
+        //private IEmployeeRepository _repository;
 
-        public EmployeeController() : this(new EmployeeRepository()) { }
+        //public EmployeeController() : this(new EmployeeRepository()) { }
 
+        //public EmployeeController(IEmployeeRepository repository)
+        //{
+        //    _repository = repository;
+        //}
+
+
+        readonly IEmployeeRepository _repository;
         public EmployeeController(IEmployeeRepository repository)
         {
-            _repository = repository;
+            this._repository = repository;
         }
-
 
         [AllowAnonymous]
         [HttpGet]
@@ -49,7 +53,7 @@ namespace Test.Controllers
                     if (IsValidUser)
                     {
                         FormsAuthentication.SetAuthCookie(emp.UserName, false);
-                        return RedirectToAction("Index", "Employee");
+                        return RedirectToAction("EmpList", "Employee");
                     }
                 }
                 ModelState.AddModelError("", "invalid Username or Password");
@@ -64,28 +68,27 @@ namespace Test.Controllers
 
 
         [HttpGet]
-        public ViewResult Index()
+        public ViewResult EmpList()
         {
-            ViewData["ControllerName"] = this.ToString();
+
             IEnumerable<Employee> employees = _repository.GetAllEmployess();
-            return View("Index", employees);
+            return View("EmpList", employees);
         }
-       
+
         [HttpGet]
-        public ActionResult Create()
+        public ActionResult EmpCreate()
         {
-            return View();
+            return View("EmpCreate");
         }
 
         [HttpPost]
-        public ActionResult Create([Bind(Exclude = "ID")] Employee employee, HttpPostedFileBase Img)
+        public ActionResult EmpCreate([Bind(Exclude = "ID")] Employee employee)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                   
-                    if (Img != null)
+                    if (employee.Img != null)
                     {
                         string path = Server.MapPath("~/images/");
                         if (!Directory.Exists(path))
@@ -93,12 +96,10 @@ namespace Test.Controllers
                             Directory.CreateDirectory(path);
                         }
 
-                        Img.SaveAs(path + Path.GetFileName(Img.FileName));
-                        employee.Img = Path.GetFileName(Img.FileName);
+                        employee.Img.SaveAs(path + Path.GetFileName(employee.Img.FileName));
+                        employee.ImgName = Path.GetFileName(employee.Img.FileName);
                     }
-                    // UpdateModel throws an exception if validation fails whereas TryUpdateModel() will never throw an exception.
 
-                    //email
                     #region mail
                     employee.Pwd = Membership.GeneratePassword(8, 3);
                     string msg = "Hi " + employee.Name + ".Your new temporary password is here.";
@@ -107,38 +108,42 @@ namespace Test.Controllers
                     ThreadStart mailThraed = delegate () { SendEmail(employee.Email, "Temporary Password", msg); };
                     Thread thread = new Thread(mailThraed);
                     thread.Start();
-                   
+
                     #endregion
 
-                    _repository.AddEmmployee(employee);
-                    return RedirectToAction("Index");
+                    bool res = _repository.AddEmmployee(employee);
+                    if (res)
+                        return RedirectToAction("EmpList");
+                    else
+                        return View("EmpCreate");
                 }
-                return View("Create");
+                return View("EmpCreate");
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                return View("Create");
+                Console.WriteLine(ex.Message);
+                return View("EmpCreate");
             }
-           
+
         }
 
 
-       
+
         [HttpGet]
-        public ActionResult Edit(int id = 0)
+        public ActionResult EmpEdit(int id = 0)
         {
+          
             Employee employee = _repository.GetAllEmployess().FirstOrDefault(emp => emp.ID == id);
-            return View("Edit", employee);
+            return View("EmpEdit", employee);
         }
 
         [HttpPost]
-        public ActionResult Edit(Employee employee, HttpPostedFileBase Img)
+        public ActionResult EmpEdit(Employee employee, HttpPostedFileBase Img)
         {
             try
             {
-                if (Img != null)
+                if (employee.Img != null)
                 {
                     string path = Server.MapPath("~/images/");
                     if (!Directory.Exists(path))
@@ -146,11 +151,15 @@ namespace Test.Controllers
                         Directory.CreateDirectory(path);
                     }
 
-                    Img.SaveAs(path + Path.GetFileName(Img.FileName));
-                    employee.Img = Path.GetFileName(Img.FileName);
+                    employee.Img.SaveAs(path + Path.GetFileName(employee.Img.FileName));
+                    employee.ImgName = Path.GetFileName(employee.Img.FileName);
                 }
-                _repository.UpdateEmmployee(employee);
-                return RedirectToAction("Index");
+
+                bool res = _repository.UpdateEmmployee(employee);
+                if (res)
+                    return RedirectToAction("EmpList");
+                else
+                    return View(employee);
             }
             catch (Exception ex)
             {
@@ -159,27 +168,27 @@ namespace Test.Controllers
                 else
                     ViewData["EditError"] = ex.ToString();
             }
-            foreach (var modelState in ModelState.Values)
-            {
-                foreach (var error in modelState.Errors)
-                {
-                    if (error.Exception != null)
-                    {
-                        throw modelState.Errors[0].Exception;
-                    }
-                }
-            }
+            //foreach (var modelState in ModelState.Values)
+            //{
+            //    foreach (var error in modelState.Errors)
+            //    {
+            //        if (error.Exception != null)
+            //        {
+            //            throw modelState.Errors[0].Exception;
+            //        }
+            //    }
+            //}
 
             return View(employee);
         }
 
 
-        public ActionResult Delete(int id)
+        public ActionResult EmpDelete(int id)
         {
             try
             {
                 _repository.DeleteEmployee(id);
-                return RedirectToAction("Index");
+                return RedirectToAction("EmpList");
             }
             catch
             {
@@ -192,8 +201,8 @@ namespace Test.Controllers
             FormsAuthentication.SignOut();
             return RedirectToAction("Login");
         }
-       
-      
+
+
         [NonAction]
         public void SendEmail(string receiver, string subject, string message)
         {
@@ -247,7 +256,7 @@ namespace Test.Controllers
 //    employee.DateOfBirth = Convert.ToDateTime(formCollection["DateOfBirth"]);
 //    EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
 //    employeeBusinessLayer.AddEmmployee(employee);
-//    return RedirectToAction("Index");
+//    return RedirectToAction("EmpList");
 //}
 //[HttpPost]
 //public ActionResult Create(Employee employee)
@@ -256,7 +265,7 @@ namespace Test.Controllers
 //    {
 //        EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
 //        employeeBusinessLayer.AddEmmployee(employee);
-//        return RedirectToAction("Index");
+//        return RedirectToAction("EmpList");
 //    }
 //    return View();
 //}

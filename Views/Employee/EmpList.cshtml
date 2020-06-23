@@ -26,7 +26,7 @@
             @Html.DisplayNameFor(model => model.Salary)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.DateOfBirth)
+            @Html.DisplayNameFor(model => model.DOB)
         </th>
         <th>
             @Html.DisplayNameFor(model => model.Mobile)
@@ -62,7 +62,7 @@
                 @Html.DisplayFor(modelItem => item.Salary)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.DateOfBirth)
+                @Html.DisplayFor(modelItem =>  item.DOB)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Mobile)
@@ -74,13 +74,13 @@
                 @Html.DisplayFor(modelItem => item.Role)
             </td>
             <td>
-                <img src="~/images/@item.Img" height="50" width="50"/>
+                <img src="~/images/@item.ImgName" height="50" width="50"/>
             </td>
 
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
+                @Html.ActionLink("Edit", "EmpEdit", new { id = item.ID }) |
 
-                @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+                @Html.ActionLink("Delete", "EmpDelete", new { id = item.ID })
             </td>
         </tr>
     }
